@@ -10,6 +10,9 @@
     "type": "git",
     "url": "git+https://endoplasmic@github.com/endoplasmic/google-assistant.git"
   },
+  "keywords": [
+    "google assistant"
+  ],
   "author": "Scott Ysebert <endoplasmic@gmail.com>",
   "license": "ISC",
   "bugs": {
