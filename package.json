@@ -14,7 +14,7 @@
     "google assistant"
   ],
   "author": "Scott Ysebert <endoplasmic@gmail.com>",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/endoplasmic/google-assistant/issues"
   },
