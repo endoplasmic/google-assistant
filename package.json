@@ -1,0 +1,31 @@
+{
+  "name": "google-assistant",
+  "version": "0.1.0",
+  "description": "gRPC wrapper for the Google Assistant",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://endoplasmic@github.com/endoplasmic/google-assistant.git"
+  },
+  "author": "Scott Ysebert <endoplasmic@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/endoplasmic/google-assistant/issues"
+  },
+  "homepage": "https://github.com/endoplasmic/google-assistant#readme",
+  "dependencies": {
+    "google-auth-library": "^0.10.0",
+    "google-protobuf": "^3.3.0",
+    "grpc": "^1.3.2",
+    "mkdirp": "^0.5.1",
+    "opn": "^5.0.0",
+    "readline": "^1.3.0"
+  },
+  "devDependencies": {
+    "node-record-lpcm16": "^0.3.0",
+    "speaker": "^0.3.0"
+  }
+}
