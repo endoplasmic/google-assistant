@@ -2,10 +2,11 @@
 A version in node to play around with! I've abstracted it from needing to use the mic and speakers on the device running the code (but it still can!) so that you can pass audio in and play audio back however you want to.
 
 ## Installation
+You need to create a JSON file for OAuth2 permissions. [Follow the instructions][oauth] and then:
+
 ```bash
 $ npm install google-assistant
 ```
-You should also [follow the instructions][oauth] to create your OAuth2 JSON file.
 
 ## Usage
 ```js
