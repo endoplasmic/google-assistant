@@ -30,7 +30,6 @@ const startConversation = (conversation) => {
       speaker.write(data);
 
       // kill the speaker after enough data has been sent to it and then let it flush out
-      // this is pretty ghetto, but I'm guessing there is a better way to do this
       spokenResponseLength += data.length;
       const audioTime = spokenResponseLength / (config.audio.sampleRateOut * 16 / 8) * 1000;
       clearTimeout(speakerTimer);
