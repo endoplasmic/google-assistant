@@ -32,10 +32,11 @@ const startConversation = (conversation) => {
       // kill the speaker after enough data has been sent to it and then let it flush out
       // this is pretty ghetto, but I'm guessing there is a better way to do this
       spokenResponseLength += data.length;
+      const audioTime = spokenResponseLength / (config.audio.sampleRateOut * 16 / 8) * 1000;
       clearTimeout(speakerTimer);
       speakerTimer = setTimeout(() => {
         speaker.end();
-      }, (spokenResponseLength / config.audio.sampleRateOut * 100) - Math.max(0, now - speakerOpenTime));
+      }, audioTime - Math.max(0, now - speakerOpenTime));
     })
     // done speaking, close the mic
     .on('end-of-utterance', () => record.stop())
@@ -65,7 +66,6 @@ const startConversation = (conversation) => {
     .on('open', () => {
       console.log('Assistant Speaking');
       speakerOpenTime = new Date().getTime();
-      // record.stop();
     })
     .on('close', () => {
       console.log('Assistant Finished Speaking');
