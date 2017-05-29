@@ -109,13 +109,17 @@ function Conversation(assistant, audioConfig) {
 
     // spit out any errors we may have
     if (data.hasError()) {
-      this.emit('error', data.getError());
+      this.emit('error', data.getError().array[1]);
     }
   });
 
   conversation.on('end', (error) => {
     this.emit('ended', error, continueConversation);
-  })
+  });
+
+  conversation.on('error', (error) => {
+    this.emit('error', error);
+  });
 
   // we write the request before any data comes in
   conversation.write(createRequest(audioConfig));
