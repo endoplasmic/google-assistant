@@ -14,7 +14,9 @@ const GoogleAssistant = require('google-assistant');
 const config = {
   auth: {
     keyFilePath: 'YOUR_API_KEY_FILE_PATH.json',
-    savedTokensPath: 'SOME_PATH/tokens.js', // where you want the tokens to be saved (will create the directory if not already there)
+    // where you want the tokens to be saved
+    // will create the directory if not already there
+    savedTokensPath: 'SOME_PATH/tokens.js',
   },
 };
 
@@ -27,10 +29,12 @@ const startConversation = (conversation) => {
 
   conversation
     .on('audio-data', (data) => {
-      // do stuff with the audio data from the server (usually send it to some audio output / file)
+      // do stuff with the audio data from the server
+      // usually send it to some audio output / file
     })
     .on('end-of-utterance', () {
-      // do stuff when done speaking to the assistant (usually just stop your audio input)
+      // do stuff when done speaking to the assistant
+      // usually just stop your audio input
     })
     .on('transcription', (text) => {
       // do stuff with the text you said to the assistant
@@ -44,7 +48,8 @@ const startConversation = (conversation) => {
     .on('error', error => console.error(error));
 };
 
-// will start a conversation and wait for audio data as soon as it's ready
+// will start a conversation and wait for audio data
+// as soon as it's ready
 assistant
   .on('ready', () => assistant.start())
   .on('started', startConversation);
