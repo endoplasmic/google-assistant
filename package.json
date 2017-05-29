@@ -1,6 +1,6 @@
 {
   "name": "google-assistant",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "gRPC wrapper for the Google Assistant",
   "main": "index.js",
   "scripts": {
