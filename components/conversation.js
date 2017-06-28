@@ -11,7 +11,7 @@ const CLOSE_MICROPHONE = embeddedAssistant.ConverseResult.MicrophoneMode.CLOSE_M
 const DEFAULT_GRPC_DEADLINE = 60 * 3 + 5;
 
 let conversationState;
-let volume = 100;
+let volumePercent = 100;
 
 const createRequest = (params) => {
   if (params === undefined) params = {};
@@ -44,7 +44,7 @@ const createRequest = (params) => {
   const audioOut = new embeddedAssistant.AudioOutConfig();
   audioOut.setEncoding(encodingOut);
   audioOut.setSampleRateHertz(params.sampleRateOut || 24000);
-  audioOut.setVolumePercentage(volume);
+  audioOut.setVolumePercentage(volumePercent);
 
   const converseConfig = new embeddedAssistant.ConverseConfig();
   converseConfig.setAudioInConfig(audioIn);
@@ -65,7 +65,7 @@ const createRequest = (params) => {
 };
 
 const setConversationState = value => conversationState = value;
-const setVolume = value => volume = value;
+const setVolumePercent = value => volumePercent = value;
 
 function Conversation(assistant, audioConfig) {
   // let's start a new conversation
@@ -88,7 +88,10 @@ function Conversation(assistant, audioConfig) {
 
       // TODO - Make sure this is applied to the audio
       if (result.getVolumePercentage() !== 0) {
-        setVolume(result.getVolumePercentage());
+        setVolumePercent(result.getVolumePercentage());
+
+        // when we modify volume data, the assistant doesn't say anything
+        this.end();
       }
 
       if (result.getSpokenRequestText()) {
