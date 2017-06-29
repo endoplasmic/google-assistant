@@ -32,7 +32,7 @@ const startConversation = (conversation) => {
       // do stuff with the audio data from the server
       // usually send it to some audio output / file
     })
-    .on('end-of-utterance', () {
+    .on('end-of-utterance', () => {
       // do stuff when done speaking to the assistant
       // usually just stop your audio input
     })
