@@ -34,7 +34,7 @@ function Auth(config) {
 
     // save them for later
     mkdirp(path.dirname(config.savedTokensPath), () => {
-      fs.writeFile(config.savedTokensPath, JSON.stringify(tokens));
+      fs.writeFile(config.savedTokensPath, JSON.stringify(tokens), () => {});
     });
   };
 
