@@ -56,7 +56,8 @@ assistant
 ```
 
 ## Examples
-Check out the [mic-speaker](examples/mic-speaker.js) example if you want to test input and output using your machine’s built-in hardware.
+* [mic-speaker](examples/mic-speaker.js) - If you want to test input and output using your machine’s built-in hardware.
+* [console-input](examples/console-input.js) - If you want to use the console to type in commands instead of saying them (thanks to @CTKRocks for the help on this)
 
 ### Pre-reqs for the mic-speaker example
 * [node-speaker](https://github.com/TooTallNate/node-speaker)
