@@ -51,7 +51,7 @@ function Auth(config) {
     // if tokenInput is configured
     // run the tokenInput function to accept the token code
     if (typeof config.tokenInput === 'function') {
-      config.tokenInput(processToken);
+      config.tokenInput(processTokens);
       return;
     }
 
@@ -62,7 +62,7 @@ function Auth(config) {
       terminal: false,
     });
 
-    reader.question('Paste your code: ', processToken);
+    reader.question('Paste your code: ', processTokens);
   };
 
   const processTokens = (oauthCode) => {
