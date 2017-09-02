@@ -48,6 +48,13 @@ function Auth(config) {
     opn(url);
     console.log('Attempted to automatically open the URL, but if it failed, copy/paste this in your browser:\n', url);
 
+    // if tokenInput is configured
+    // run the tokenInput function to accept the token code
+    if (typeof config.tokenInput === 'function') {
+      config.tokenInput(processTokens);
+      return;
+    }
+
     // create the interface to accept the code
     const reader = readline.createInterface({
       input: process.stdin,
@@ -55,20 +62,22 @@ function Auth(config) {
       terminal: false,
     });
 
-    reader.question('Paste your code: ', (oauthCode) => {
-      if (!oauthCode) process.exit(-1);
+    reader.question('Paste your code: ', processTokens);
+  };
 
-      // get our tokens to save
-      oauthClient.getToken(oauthCode, (error, tkns) => {
-        // if we didn't have an error, save the tokens
-        if (error) {
-          console.log('Error getting tokens:', error);
-          return;
-        }
+  const processTokens = (oauthCode) => {
+    if (!oauthCode) process.exit(-1);
 
-        tokens = tkns;
-        saveTokens();
-      });
+    // get our tokens to save
+    oauthClient.getToken(oauthCode, (error, tkns) => {
+      // if we didn't have an error, save the tokens
+      if (error) {
+        console.log('Error getting tokens:', error);
+        return;
+      }
+
+      tokens = tkns;
+      saveTokens();
     });
   };
 
