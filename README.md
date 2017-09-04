@@ -61,7 +61,7 @@ assistant
 
 ### Pre-reqs for the mic-speaker example
 * [node-speaker](https://github.com/TooTallNate/node-speaker)
-* [node-record-lpcm16](https://github.com/gillesdemey/node-record-lpcm16)
+* [node-record-lpcm16](https://github.com/endoplasmic/node-record-lpcm16)
 
 If you are on macOS and are seeing `Illegal instruction: 4` when you complete your conversation, just use this command to re-install the speaker:
 ```bash
