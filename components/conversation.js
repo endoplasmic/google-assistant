@@ -29,9 +29,9 @@ const createRequest = (params) => {
   let encodingOut = embeddedAssistant.AudioOutConfig.Encoding.LINEAR16;
   if (params.encodingOut !== undefined && isNaN(params.encodingOut)) {
     // let's try to resolve it
-    Object.keys(embeddedAssistant.AudioInConfig.Encoding).forEach((encoding) => {
+    Object.keys(embeddedAssistant.AudioOutConfig.Encoding).forEach((encoding) => {
       if (params.encodingOut.toUpperCase() === encoding.toUpperCase()) {
-        encodingOut = embeddedAssistant.AudioInConfig.Encoding[encoding];
+        encodingOut = embeddedAssistant.AudioOutConfig.Encoding[encoding];
       }
     });
   }
