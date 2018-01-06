@@ -39,8 +39,14 @@ const startConversation = (conversation) => {
     })
     // done speaking, close the mic
     .on('end-of-utterance', () => record.stop())
-    // just to spit out to the console what was said
+    // just to spit out to the console what was said (as we say it)
     .on('transcription', text => console.log('Transcription:', text))
+    // what the assistant said back
+    .on('response', text => console.log('Assistant Text Response:', text))
+    // if we've requested a volume level change, get the percentage of the new level
+    .on('volume-percent', percent => console.log('New Volume Percent:', percent))
+    // the device needs to complete an action
+    .on('device-action', json => console.log('Device Action JSON:', json))
     // once the conversation is ended, see if we need to follow up
     .on('ended', (error, continueConversation) => {
       if (error) console.log('Conversation Ended Error:', error);

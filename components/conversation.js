@@ -3,11 +3,11 @@
 const EventEmitter = require('events');
 const util = require('util');
 
-const embeddedAssistant = require('../lib/google/assistant/embedded/v1alpha1/embedded_assistant_pb');
+const embeddedAssistant = require('../lib/google/assistant/embedded/v1alpha2/embedded_assistant_pb');
 
-const END_OF_UTTERANCE = embeddedAssistant.ConverseResponse.EventType.END_OF_UTTERANCE;
-const DIALOG_FOLLOW_ON = embeddedAssistant.ConverseResult.MicrophoneMode.DIALOG_FOLLOW_ON;
-const CLOSE_MICROPHONE = embeddedAssistant.ConverseResult.MicrophoneMode.CLOSE_MICROPHONE;
+const END_OF_UTTERANCE = embeddedAssistant.AssistResponse.EventType.END_OF_UTTERANCE;
+const DIALOG_FOLLOW_ON = embeddedAssistant.DialogStateOut.MicrophoneMode.DIALOG_FOLLOW_ON;
+const CLOSE_MICROPHONE = embeddedAssistant.DialogStateOut.MicrophoneMode.CLOSE_MICROPHONE;
 const DEFAULT_GRPC_DEADLINE = 60 * 3 + 5;
 
 let conversationState;
@@ -46,22 +46,37 @@ const createRequest = (params) => {
   audioOut.setSampleRateHertz(params.sampleRateOut || 24000);
   audioOut.setVolumePercentage(volumePercent);
 
-  const converseConfig = new embeddedAssistant.ConverseConfig();
-  converseConfig.setAudioInConfig(audioIn);
-  converseConfig.setAudioOutConfig(audioOut);
+  const assistConfig = new embeddedAssistant.AssistConfig();
+  assistConfig.setAudioInConfig(audioIn);
+  assistConfig.setAudioOutConfig(audioOut);
+
+  /* * Stuff for the future * * *
+    setTextQuery(STRING)
+    setDeviceConfig()
+  * */
+
+  const deviceConfig = new embeddedAssistant.DeviceConfig();
+  deviceConfig.setDeviceId('TEST1234');
+  deviceConfig.setDeviceModelId('4321TSET');
+  assistConfig.setDeviceConfig(deviceConfig);
+
+  // setup the dialog state
+  const dialogStateIn = new embeddedAssistant.DialogStateIn();
+  dialogStateIn.setLanguageCode(params.lang || 'en-US');
+  // dialogStateIn.setDeviceLocation
 
   // if there is a current conversation state, we need to make sure the config knows about it
   if (conversationState) {
-    const converseState = new embeddedAssistant.ConverseState();
-    converseState.setConversationState(conversationState);
-    converseConfig.setConverseState(converseState);
+    dialogStateIn.setConversationState(conversationState);
   }
 
-  // go ahead and create the request to return
-  const converseRequest = new embeddedAssistant.ConverseRequest();
-  converseRequest.setConfig(converseConfig);
+  assistConfig.setDialogStateIn(dialogStateIn);
 
-  return converseRequest;
+  // go ahead and create the request to return
+  const assistRequest = new embeddedAssistant.AssistRequest();
+  assistRequest.setConfig(assistConfig);
+
+  return assistRequest;
 };
 
 const setConversationState = value => conversationState = value;
@@ -73,46 +88,49 @@ function Conversation(assistant, audioConfig) {
   let continueConversation = false;
 
   conversation.on('data', (data) => {
-    if (data.hasEventType() && data.getEventType() === END_OF_UTTERANCE) {
+    if (data.getEventType() === END_OF_UTTERANCE) {
       this.emit('end-of-utterance');
     }
 
-    if (data.hasResult()) {
-      const result = data.getResult();
-      setConversationState(result.getConversationState_asU8());
-
-      // if we are going to continue the conversation, we need to make sure the mic is open
-      if (result.getMicrophoneMode() === DIALOG_FOLLOW_ON) {
-        continueConversation = true;
-      }
-
-      // TODO - Make sure this is applied to the audio
-      if (result.getVolumePercentage() !== 0) {
-        setVolumePercent(result.getVolumePercentage());
-
-        // when we modify volume data, the assistant doesn't say anything
-        this.end();
-      }
-
-      if (result.getSpokenRequestText()) {
-        this.emit('transcription', result.getSpokenRequestText());
-      }
-
-      if (result.getSpokenResponseText()) {
-        // this is only emitted when coming from IFTTT
-        this.emit('response', result.getSpokenResponseText());
-      }
+    // speech to text results
+    const speechResultsList = data.getSpeechResultsList();
+    if (speechResultsList && speechResultsList.length) {
+      let transcription = '';
+      let done = false;
+      speechResultsList.forEach((result, index) => {
+        transcription += result.getTranscript();
+        if (result.getStability() === 1) done = true;
+      });
+      this.emit('transcription', { transcription, done });
     }
 
     // send along the audio buffer
-    if (data.hasAudioOut()) {
-      const audioData = data.getAudioOut().getAudioData();
-      this.emit('audio-data', new Buffer(audioData));
+    const audioOut = data.getAudioOut();
+    if (audioOut) {
+      this.emit('audio-data', new Buffer(audioOut.getAudioData()));
     }
 
-    // spit out any errors we may have
-    if (data.hasError()) {
-      this.emit('error', data.getError().array[1]);
+    // action that needs to be handled
+    const deviceAction = data.getDeviceAction();
+    if (deviceAction) {
+      this.emit('device-action', deviceAction.getDeviceRequestJson());
+    }
+
+    const dialogStateOut = data.getDialogStateOut();
+    if (dialogStateOut) {
+      // if we need to continue the conversation, let's do that
+      const micMode = dialogStateOut.getMicrophoneMode();
+      if (micMode === DIALOG_FOLLOW_ON) continueConversation = true;
+
+      this.emit('response', dialogStateOut.getSupplementalDisplayText());
+      setConversationState(dialogStateOut.getConversationState());
+      
+      const volumePercent = dialogStateOut.getVolumePercentage();
+      if (volumePercent !== 0) {
+        // set our local version so our assistant speaks this loud
+        setVolumePercent(volumePercent);
+        this.emit('volume-percent', volumePercent);
+      }
     }
   });
 
@@ -129,7 +147,7 @@ function Conversation(assistant, audioConfig) {
   
   // write audio data to the conversation
   this.write = (data) => {
-    const request = new embeddedAssistant.ConverseRequest();
+    const request = new embeddedAssistant.AssistRequest();
     request.setAudioIn(data);
     conversation.write(request);
   };

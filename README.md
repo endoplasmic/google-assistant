@@ -109,7 +109,7 @@ Contains the text that the server recognized from your voice.
 After a call to `end()` this will be emitted with an error and a boolean that will be `true` if you need to continue the conversation. This is basically your cue to call `start()` again.
 
 #### response _{String}_
-This is only emitted when using IFTTT.
+The response text from the assistant.
 
 ### Methods
 
@@ -118,3 +118,4 @@ Send this when you are finsished playing back the assistant's response.
 
 
 [oauth]: https://developers.google.com/assistant/sdk/prototype/getting-started-other-platforms/config-dev-project-and-account
+[device-instance]: https://developers.google.com/assistant/sdk/reference/device-registration/model-and-instance-schemas#device_instance_json

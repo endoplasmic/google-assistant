@@ -1,38 +1,38 @@
 'use strict';
 
 const grpc = require('grpc');
-const embeddedAssistant = require('../lib/google/assistant/embedded/v1alpha1/embedded_assistant_pb');
+const embeddedAssistant = require('../lib/google/assistant/embedded/v1alpha2/embedded_assistant_pb');
 
 const requestSerialize = (value) => {
-  if (!(value instanceof embeddedAssistant.ConverseRequest)) {
-    throw new Error('Expected argument of type google.assistant.embedded.v1alpha1.ConverseRequest');
+  if (!(value instanceof embeddedAssistant.AssistRequest)) {
+    throw new Error('Expected argument of type google.assistant.embedded.v1alpha2.AssistRequest');
   }
   return new Buffer(value.serializeBinary());
 }
 
 const requestDeserialize = (buffer) => {
-  return embeddedAssistant.ConverseRequest.deserializeBinary(new Uint8Array(buffer));
+  return embeddedAssistant.AssistRequest.deserializeBinary(new Uint8Array(buffer));
 }
 
 const responseSerialize = (value) => {
-  if (!(value instanceof embeddedAssistant.ConverseResponse)) {
-    throw new Error('Expected argument of type google.assistant.embedded.v1alpha1.ConverseResponse');
+  if (!(value instanceof embeddedAssistant.AssistResponse)) {
+    throw new Error('Expected argument of type google.assistant.embedded.v1alpha2.AssistResponse');
   }
   return new Buffer(value.serializeBinary());
 }
 
 const responseDeserialize = (buffer) => {
-  return embeddedAssistant.ConverseResponse.deserializeBinary(new Uint8Array(buffer));
+  return embeddedAssistant.AssistResponse.deserializeBinary(new Uint8Array(buffer));
 }
 
 // build the service
 const EmbeddedAssistantService = exports.EmbeddedAssistantService = {
   converse: {
-    path: '/google.assistant.embedded.v1alpha1.EmbeddedAssistant/Converse',
+    path: '/google.assistant.embedded.v1alpha2.EmbeddedAssistant/Assist',
     requestStream: true,
     responseStream: true,
-    requestType: embeddedAssistant.ConverseRequest,
-    responseType: embeddedAssistant.ConverseResponse,
+    requestType: embeddedAssistant.AssistRequest,
+    responseType: embeddedAssistant.AssistResponse,
     requestSerialize,
     requestDeserialize,
     responseSerialize,
