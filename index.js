@@ -21,7 +21,7 @@ function GoogleAssistant(config) {
   });
 
   this.start = (callback) => {
-    const conversation = new Conversation(assistant, config.audio);
+    const conversation = new Conversation(assistant, config);
     this.emit('started', conversation);
     if (callback) callback(conversation);
   };

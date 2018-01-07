@@ -9,55 +9,60 @@ const END_OF_UTTERANCE = embeddedAssistant.AssistResponse.EventType.END_OF_UTTER
 const DIALOG_FOLLOW_ON = embeddedAssistant.DialogStateOut.MicrophoneMode.DIALOG_FOLLOW_ON;
 const CLOSE_MICROPHONE = embeddedAssistant.DialogStateOut.MicrophoneMode.CLOSE_MICROPHONE;
 const DEFAULT_GRPC_DEADLINE = 60 * 3 + 5;
+const DEFAULT_SAMPLE_RATE_IN = 16000;
+const DEFAULT_SAMPLE_RATE_OUT = 24000;
 
 let conversationState;
 let volumePercent = 100;
+let sendingText = false;
+
+const getEncoding = (config, encodingOverride) => {
+  let result = config.Encoding.LINEAR16;
+  if (encodingOverride !== undefined && isNaN(encodingOverride)) {
+    // let's try to resolve it
+    Object.keys(config.Encoding).forEach((encoding) => {
+      if (encodingOverride.toUpperCase() === encoding.toUpperCase()) {
+        result = config.Encoding[encoding];
+      }
+    });
+  }
+
+  return result;
+};
 
 const createRequest = (params) => {
   if (params === undefined) params = {};
 
-  let encodingIn = embeddedAssistant.AudioInConfig.Encoding.LINEAR16;
-  if (params.encodingIn !== undefined && isNaN(params.encodingIn)) {
-    // let's try to resolve it
-    Object.keys(embeddedAssistant.AudioInConfig.Encoding).forEach((encoding) => {
-      if (params.encodingIn.toUpperCase() === encoding.toUpperCase()) {
-        encodingIn = embeddedAssistant.AudioInConfig.Encoding[encoding];
-      }
-    });
-  }
-
-  let encodingOut = embeddedAssistant.AudioOutConfig.Encoding.LINEAR16;
-  if (params.encodingOut !== undefined && isNaN(params.encodingOut)) {
-    // let's try to resolve it
-    Object.keys(embeddedAssistant.AudioOutConfig.Encoding).forEach((encoding) => {
-      if (params.encodingOut.toUpperCase() === encoding.toUpperCase()) {
-        encodingOut = embeddedAssistant.AudioOutConfig.Encoding[encoding];
-      }
-    });
-  }
+  // build out the request config
+  const assistConfig = new embeddedAssistant.AssistConfig();
 
   // create the defaults if nothing was passed in
-  const audioIn = new embeddedAssistant.AudioInConfig();
-  audioIn.setEncoding(encodingIn);
-  audioIn.setSampleRateHertz(params.sampleRateIn || 16000);
-
+  const encodingOut = params.audio ? params.audio.encodingOut : undefined;
+  const sampleRateOut = params.audio ? params.audio.sampleRateOut : DEFAULT_SAMPLE_RATE_OUT;
   const audioOut = new embeddedAssistant.AudioOutConfig();
-  audioOut.setEncoding(encodingOut);
-  audioOut.setSampleRateHertz(params.sampleRateOut || 24000);
+  audioOut.setEncoding(getEncoding(embeddedAssistant.AudioOutConfig, encodingOut));
+  audioOut.setSampleRateHertz(sampleRateOut || DEFAULT_SAMPLE_RATE_OUT);
   audioOut.setVolumePercentage(volumePercent);
 
-  const assistConfig = new embeddedAssistant.AssistConfig();
-  assistConfig.setAudioInConfig(audioIn);
   assistConfig.setAudioOutConfig(audioOut);
 
-  /* * Stuff for the future * * *
-    setTextQuery(STRING)
-    setDeviceConfig()
-  * */
+  // we want to send text to the assistant instead of audio
+  if (params.textQuery) {
+    assistConfig.setTextQuery(params.textQuery);
+  } else {
+    const encodingIn = params.audio ? params.audio.encodingIn : undefined;
+    const sampleRateIn = params.audio ? params.audio.sampleRateIn : DEFAULT_SAMPLE_RATE_IN;
+    const audioIn = new embeddedAssistant.AudioInConfig();
+    audioIn.setEncoding(getEncoding(embeddedAssistant.AudioInConfig, encodingIn));
+    audioIn.setSampleRateHertz(sampleRateIn || DEFAULT_SAMPLE_RATE_IN);
 
+    assistConfig.setAudioInConfig(audioIn);
+  }
+
+  // set device information (or use dummy placeholders so the request works)
   const deviceConfig = new embeddedAssistant.DeviceConfig();
-  deviceConfig.setDeviceId('TEST1234');
-  deviceConfig.setDeviceModelId('4321TSET');
+  deviceConfig.setDeviceId(params.deviceId || 'sample_device_id');
+  deviceConfig.setDeviceModelId(params.deviceModelId || 'sample_model_id');
   assistConfig.setDeviceConfig(deviceConfig);
 
   // setup the dialog state
@@ -76,13 +81,16 @@ const createRequest = (params) => {
   const assistRequest = new embeddedAssistant.AssistRequest();
   assistRequest.setConfig(assistConfig);
 
+  // make sure we set our flag if we are doing a text query
+  sendingText = params.textQuery !== undefined;
+
   return assistRequest;
 };
 
 const setConversationState = value => conversationState = value;
 const setVolumePercent = value => volumePercent = value;
 
-function Conversation(assistant, audioConfig) {
+function Conversation(assistant, config) {
   // let's start a new conversation
   const conversation = assistant.converse();
   let continueConversation = false;
@@ -113,7 +121,7 @@ function Conversation(assistant, audioConfig) {
     // action that needs to be handled
     const deviceAction = data.getDeviceAction();
     if (deviceAction) {
-      this.emit('device-action', deviceAction.getDeviceRequestJson());
+      this.emit('device-action', JSON.parse(deviceAction.getDeviceRequestJson()));
     }
 
     const dialogStateOut = data.getDialogStateOut();
@@ -143,10 +151,13 @@ function Conversation(assistant, audioConfig) {
   });
 
   // we write the request before any data comes in
-  conversation.write(createRequest(audioConfig));
+  conversation.write(createRequest(config));
   
   // write audio data to the conversation
   this.write = (data) => {
+    // if audio tries to come in when we are sending text, bail out
+    if (sendingText) return;
+
     const request = new embeddedAssistant.AssistRequest();
     request.setAudioIn(data);
     conversation.write(request);
