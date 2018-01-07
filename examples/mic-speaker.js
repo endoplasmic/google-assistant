@@ -13,6 +13,7 @@ const config = {
     encodingIn: 'LINEAR16', // supported are LINEAR16 / FLAC (defaults to LINEAR16)
     sampleRateOut: 24000, // supported are 16000 / 24000 (defaults to 24000)
   },
+  lang: 'en-US', // defaults to en-US
 };
 
 const startConversation = (conversation) => {
