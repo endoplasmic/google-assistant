@@ -2,46 +2,36 @@
 
 const record = require('node-record-lpcm16');
 const Speaker = require('speaker');
+const path = require('path');
 const GoogleAssistant = require('../index');
+const speakerHelper = require('./speaker-helper');
 
 const config = {
   auth: {
-    keyFilePath: 'YOUR_KEY_FILE_PATH.json',
-    savedTokensPath: 'SOME_PATH/tokens.js', // where you want the tokens to be saved
+    keyFilePath: path.resolve(__dirname, 'YOUR_KEY_FILE.json'),
+    savedTokensPath: path.resolve(__dirname, 'tokens.json'), // where you want the tokens to be saved
   },
-  audio: {
-    encodingIn: 'LINEAR16', // supported are LINEAR16 / FLAC (defaults to LINEAR16)
-    sampleRateOut: 24000, // supported are 16000 / 24000 (defaults to 24000)
+  conversation: {
+    audio: {
+      sampleRateOut: 24000, // defaults to 24000
+    },
+    lang: 'en-US', // defaults to en-US, but try other ones, it's fun!
   },
-  lang: 'en-US', // defaults to en-US
 };
 
 const startConversation = (conversation) => {
   console.log('Say something!');
 
-  let spokenResponseLength = 0;
-  let speakerOpenTime;
-  let speakerTimer;
-
   // setup the conversation
   conversation
     // send the audio buffer to the speaker
     .on('audio-data', (data) => {
-      const now = new Date().getTime();
-      speaker.write(data);
-
-      // kill the speaker after enough data has been sent to it and then let it flush out
-      spokenResponseLength += data.length;
-      const audioTime = spokenResponseLength / (config.audio.sampleRateOut * 16 / 8) * 1000;
-      clearTimeout(speakerTimer);
-      speakerTimer = setTimeout(() => {
-        speaker.end();
-      }, audioTime - Math.max(0, now - speakerOpenTime));
+      speakerHelper.update(data);
     })
     // done speaking, close the mic
     .on('end-of-utterance', () => record.stop())
     // just to spit out to the console what was said (as we say it)
-    .on('transcription', text => console.log('Transcription:', text))
+    .on('transcription', data => console.log('Transcription:', data.transcription, ' --- Done:', data.done))
     // what the assistant said back
     .on('response', text => console.log('Assistant Text Response:', text))
     // if we've requested a volume level change, get the percentage of the new level
@@ -51,7 +41,7 @@ const startConversation = (conversation) => {
     // once the conversation is ended, see if we need to follow up
     .on('ended', (error, continueConversation) => {
       if (error) console.log('Conversation Ended Error:', error);
-      else if (continueConversation) assistant.start();
+      else if (continueConversation) assistant.start(config.conversation);
       else console.log('Conversation Complete');
     })
     // catch any errors
@@ -66,12 +56,13 @@ const startConversation = (conversation) => {
   // setup the speaker
   const speaker = new Speaker({
     channels: 1,
-    sampleRate: config.audio.sampleRateOut,
+    sampleRate: config.conversation.audio.sampleRateOut,
   });
+  speakerHelper.init(speaker);
   speaker
     .on('open', () => {
       console.log('Assistant Speaking');
-      speakerOpenTime = new Date().getTime();
+      speakerHelper.open();
     })
     .on('close', () => {
       console.log('Assistant Finished Speaking');
@@ -80,11 +71,11 @@ const startConversation = (conversation) => {
 };
 
 // setup the assistant
-const assistant = new GoogleAssistant(config);
+const assistant = new GoogleAssistant(config.auth);
 assistant
   .on('ready', () => {
     // start a conversation!
-    assistant.start();
+    assistant.start(config.conversation);
   })
   .on('started', startConversation)
   .on('error', (error) => {
