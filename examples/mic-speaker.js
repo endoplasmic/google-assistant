@@ -46,7 +46,7 @@ const startConversation = (conversation) => {
     // if we've requested a volume level change, get the percentage of the new level
     .on('volume-percent', percent => console.log('New Volume Percent:', percent))
     // the device needs to complete an action
-    .on('device-action', json => console.log('Device Action JSON:', json))
+    .on('device-action', action => console.log('Device Action:', action))
     // once the conversation is ended, see if we need to follow up
     .on('ended', (error, continueConversation) => {
       if (error) console.log('Conversation Ended Error:', error);
