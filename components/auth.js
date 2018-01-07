@@ -15,12 +15,11 @@ function Auth(config) {
 
   // make sure we have a key file to read from
   if (config.keyFilePath === undefined) {
-    console.log('Missing "keyFilePath" from config (should be where your JSON file is)');
-    return;
+    throw new Error('Missing "keyFilePath" from config (should be where your JSON file is)');
   }
 
   if (config.savedTokensPath === undefined) {
-    console.log('Missing "savedTokensPath" from config (this is where your OAuth2 access tokens will be saved)');
+    throw new Error('Missing "savedTokensPath" from config (this is where your OAuth2 access tokens will be saved)');
     return;
   }
 
@@ -71,10 +70,7 @@ function Auth(config) {
     // get our tokens to save
     oauthClient.getToken(oauthCode, (error, tkns) => {
       // if we didn't have an error, save the tokens
-      if (error) {
-        console.log('Error getting tokens:', error);
-        return;
-      }
+      if (error) throw new Error('Error getting tokens:', error);
 
       tokens = tkns;
       saveTokens();
