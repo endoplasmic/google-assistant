@@ -63,7 +63,7 @@ const startConversation = (conversation) => {
     })
     .on('device-action', (action) => {
       // if you've set this device up to handle actions, you'll get that here
-    }
+    })
     .on('ended', (error, continueConversation) => {
       // once the conversation is ended, see if we need to follow up
       if (error) console.log('Conversation Ended Error:', error);
