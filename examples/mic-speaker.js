@@ -21,6 +21,7 @@ const config = {
 
 const startConversation = (conversation) => {
   console.log('Say something!');
+  let openMicAgain = false;
 
   // setup the conversation
   conversation
@@ -41,7 +42,7 @@ const startConversation = (conversation) => {
     // once the conversation is ended, see if we need to follow up
     .on('ended', (error, continueConversation) => {
       if (error) console.log('Conversation Ended Error:', error);
-      else if (continueConversation) assistant.start(config.conversation);
+      else if (continueConversation) openMicAgain = true;
       else console.log('Conversation Complete');
     })
     // catch any errors
@@ -66,7 +67,7 @@ const startConversation = (conversation) => {
     })
     .on('close', () => {
       console.log('Assistant Finished Speaking');
-      conversation.end();
+      if (openMicAgain) assistant.start(config.conversation);
     });
 };
 
