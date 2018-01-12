@@ -93,6 +93,13 @@ If you are on macOS and are seeing `Illegal instruction: 4` when you complete yo
 $ npm install speaker --mpg123-backend=openal
 ```
 
+If you are on a Raspberry Pi and having some issues with getting the `mic-speaker` example working, try changing the following code around line 54:
+```js
+const mic = record.start({ threshold: 0, recordProgram: 'arecord', device: 'plughw:1,0' });
+```
+
+This is assuming you have a capture device on 1,0 _(hint: type `arecord -l` to see what capture devices you have and what card/device they are on)_
+
 ---------------
 
 ## Assistant Instance _{Object}_
