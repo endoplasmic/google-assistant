@@ -33,6 +33,13 @@ const config = {
     deviceModelId: 'xxxxxxxx', // use if you've gone through the Device Registration process
     deviceId: 'xxxxxx', // use if you've gone through the Device Registration process
     textQuery: 'What time is it?', // if this is set, audio input is ignored
+    deviceLocation: {
+      coordinates: { // set the latitude and longitude of the device
+        latitude: xxxxxx,
+        longitude: xxxxx,
+      },
+    },
+    isNew: true, // set this to true if you want to force a new conversation and ignore the old state
   },
 };
 

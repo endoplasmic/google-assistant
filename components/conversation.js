@@ -4,6 +4,7 @@ const EventEmitter = require('events');
 const util = require('util');
 
 const embeddedAssistant = require('../lib/google/assistant/embedded/v1alpha2/embedded_assistant_pb');
+const LatLng = require('../lib/google/type/latlng_pb').LatLng;
 
 const END_OF_UTTERANCE = embeddedAssistant.AssistResponse.EventType.END_OF_UTTERANCE;
 const DIALOG_FOLLOW_ON = embeddedAssistant.DialogStateOut.MicrophoneMode.DIALOG_FOLLOW_ON;
@@ -68,12 +69,27 @@ const createRequest = (params) => {
   // setup the dialog state
   const dialogStateIn = new embeddedAssistant.DialogStateIn();
   dialogStateIn.setLanguageCode(params.lang || 'en-US');
-  // dialogStateIn.setDeviceLocation
+
+  // set device location if set
+  if (params.deviceLocation) {
+    const deviceLocation = new embeddedAssistant.DeviceLocation();
+    const coordinates = params.deviceLocation.coordinates;
+    if (coordinates) {
+      const latLng = new LatLng();
+      latLng.setLatitude(coordinates.latitude);
+      latLng.setLongitude(coordinates.longitude);
+      deviceLocation.setCoordinates(latLng);
+    }
+    dialogStateIn.setDeviceLocation(deviceLocation);
+  }
 
   // if there is a current conversation state, we need to make sure the config knows about it
   if (conversationState) {
     dialogStateIn.setConversationState(conversationState);
   }
+
+  // make sure if this is a new conversation, we set the flag
+  dialogStateIn.setIsNewConversation(params.isNew === true);
 
   assistConfig.setDialogStateIn(dialogStateIn);
 
