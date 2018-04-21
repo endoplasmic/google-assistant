@@ -32,13 +32,13 @@ const config = {
     lang: 'en-US', // language code for input/output (defaults to en-US)
     deviceModelId: 'xxxxxxxx', // use if you've gone through the Device Registration process
     deviceId: 'xxxxxx', // use if you've gone through the Device Registration process
-    textQuery: 'What time is it?', // if this is set, audio input is ignored
     deviceLocation: {
       coordinates: { // set the latitude and longitude of the device
         latitude: xxxxxx,
         longitude: xxxxx,
       },
     },
+    textQuery: 'What time is it?', // if this is set, audio input is ignored
     isNew: true, // set this to true if you want to force a new conversation and ignore the old state
   },
 };
@@ -140,7 +140,12 @@ After you call `start` on your Assistant instance, you will get this back. It ta
 * lang _{String}_: Language code for the input / output. _(defaults to `en-US`, [but here are some more options!][language-info])_
 * deviceModelId _{String}_: Device model id when using [custom devices][device-registration].
 * deviceId _{String}_: Device id when using [custom devices][device-registration].
+* deviceLocation _{Object}_: Set the device's location.
+  * coordinates _{Object}_: Set the latitude and longitude of the devic.
+    * latitude _{Number}_: The latitude in degrees. It must be in the range [-90.0, +90.0].
+    * longitude _{Number}_: The longitude in degrees. It must be in the range [-180.0, +180.0].
 * textQuery _{String}_: Text that will be passed to the assistant. **Audio input is disabled if this is set!**
+* isNew _{Boolean}_: Set this to true if you want to force a new conversation and ignore the old state.
 
 
 ### Events
