@@ -44,8 +44,10 @@ function Auth(config) {
     });
 
     // open the URL
-    opn(url);
-    console.log('Attempted to automatically open the URL, but if it failed, copy/paste this in your browser:\n', url);
+    console.log('Opening OAuth URL. Return here with your code.');
+    opn(url).catch(() => {
+      console.log('Failed to automatically open the URL. Copy/paste this in your browser:\n', url);
+    });
 
     // if tokenInput is configured
     // run the tokenInput function to accept the token code
