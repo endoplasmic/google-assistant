@@ -7,6 +7,7 @@ const protoLoader = require('./proto-loader');
 const embeddedAssistant = protoLoader.loadSync('google/assistant/embedded/v1alpha2/embedded_assistant.proto');
 const AssistConfig = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.AssistConfig');
 const AssistRequest = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.AssistRequest');
+const AssistResponse = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.AssistResponse');
 const AudioInConfig = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.AudioInConfig');
 const AudioOutConfig = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.AudioOutConfig');
 const DeviceConfig = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.DeviceConfig');
@@ -15,6 +16,7 @@ const DialogStateIn = embeddedAssistant.lookupType('google.assistant.embedded.v1
 const DialogStateOut = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.DialogStateOut');
 const LatLng = embeddedAssistant.lookupType('google.type.LatLng');
 
+const END_OF_UTTERANCE = AssistResponse.EventType.END_OF_UTTERANCE;
 const DIALOG_FOLLOW_ON = DialogStateOut.MicrophoneMode.DIALOG_FOLLOW_ON;
 const CLOSE_MICROPHONE = DialogStateOut.MicrophoneMode.CLOSE_MICROPHONE;
 const DEFAULT_SAMPLE_RATE_IN = 16000;
@@ -116,6 +118,11 @@ function Conversation(assistant, config) {
   let continueConversation = false;
 
   conversation.on('data', (data) => {
+    // see if we are done speaking
+    if (data.eventType === END_OF_UTTERANCE) {
+      this.emit('end-of-utterance');
+    }
+
     // speech to text results
     const speechResultsList = data.speechResults;
     if (speechResultsList && speechResultsList.length) {
@@ -126,7 +133,6 @@ function Conversation(assistant, config) {
         if (result.stability === 1) done = true;
       });
 
-      if (done) this.emit('end-of-utterance');
       this.emit('transcription', { transcription, done });
     }
 
