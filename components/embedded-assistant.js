@@ -1,29 +1,27 @@
 'use strict';
 
 const grpc = require('grpc');
-const embeddedAssistant = require('../lib/google/assistant/embedded/v1alpha2/embedded_assistant_pb');
+const protoLoader = require('./proto-loader');
+
+const embeddedAssistant = protoLoader.loadSync('google/assistant/embedded/v1alpha2/embedded_assistant.proto');
+const AssistRequest = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.AssistRequest');
+const AssistResponse = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.AssistResponse');
 
 const requestSerialize = (value) => {
-  if (!(value instanceof embeddedAssistant.AssistRequest)) {
+  if (!(value instanceof AssistRequest.ctor)) {
     throw new Error('Expected argument of type google.assistant.embedded.v1alpha2.AssistRequest');
   }
-  return new Buffer(value.serializeBinary());
+  return AssistRequest.encode(value).finish();
 }
-
-const requestDeserialize = (buffer) => {
-  return embeddedAssistant.AssistRequest.deserializeBinary(new Uint8Array(buffer));
-}
+const requestDeserialize = buffer => AssistRequest.decode(buffer);
 
 const responseSerialize = (value) => {
-  if (!(value instanceof embeddedAssistant.AssistResponse)) {
+  if (!(value instanceof AssistResponse.ctor)) {
     throw new Error('Expected argument of type google.assistant.embedded.v1alpha2.AssistResponse');
   }
-  return new Buffer(value.serializeBinary());
+  return AssistResponse.encode(value).finish();
 }
-
-const responseDeserialize = (buffer) => {
-  return embeddedAssistant.AssistResponse.deserializeBinary(new Uint8Array(buffer));
-}
+const responseDeserialize = buffer => AssistResponse.decode(buffer);
 
 // build the service
 const EmbeddedAssistantService = exports.EmbeddedAssistantService = {
@@ -31,8 +29,8 @@ const EmbeddedAssistantService = exports.EmbeddedAssistantService = {
     path: '/google.assistant.embedded.v1alpha2.EmbeddedAssistant/Assist',
     requestStream: true,
     responseStream: true,
-    requestType: embeddedAssistant.AssistRequest,
-    responseType: embeddedAssistant.AssistResponse,
+    requestType: AssistRequest,
+    responseType: AssistResponse,
     requestSerialize,
     requestDeserialize,
     responseSerialize,

@@ -21,7 +21,6 @@
   "homepage": "https://github.com/endoplasmic/google-assistant#readme",
   "dependencies": {
     "google-auth-library": "0.10.0",
-    "google-protobuf": "3.3.0",
     "grpc": "1.8.0",
     "mkdirp": "^0.5.1",
     "opn": "^5.1.0",

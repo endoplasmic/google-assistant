@@ -2,14 +2,21 @@
 
 const EventEmitter = require('events');
 const util = require('util');
+const protoLoader = require('./proto-loader');
 
-const embeddedAssistant = require('../lib/google/assistant/embedded/v1alpha2/embedded_assistant_pb');
-const LatLng = require('../lib/google/type/latlng_pb').LatLng;
+const embeddedAssistant = protoLoader.loadSync('google/assistant/embedded/v1alpha2/embedded_assistant.proto');
+const AssistConfig = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.AssistConfig');
+const AssistRequest = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.AssistRequest');
+const AudioInConfig = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.AudioInConfig');
+const AudioOutConfig = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.AudioOutConfig');
+const DeviceConfig = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.DeviceConfig');
+const DeviceLocation = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.DeviceLocation');
+const DialogStateIn = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.DialogStateIn');
+const DialogStateOut = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.DialogStateOut');
+const LatLng = embeddedAssistant.lookupType('google.type.LatLng');
 
-const END_OF_UTTERANCE = embeddedAssistant.AssistResponse.EventType.END_OF_UTTERANCE;
-const DIALOG_FOLLOW_ON = embeddedAssistant.DialogStateOut.MicrophoneMode.DIALOG_FOLLOW_ON;
-const CLOSE_MICROPHONE = embeddedAssistant.DialogStateOut.MicrophoneMode.CLOSE_MICROPHONE;
-const DEFAULT_GRPC_DEADLINE = 60 * 3 + 5;
+const DIALOG_FOLLOW_ON = DialogStateOut.MicrophoneMode.DIALOG_FOLLOW_ON;
+const CLOSE_MICROPHONE = DialogStateOut.MicrophoneMode.CLOSE_MICROPHONE;
 const DEFAULT_SAMPLE_RATE_IN = 16000;
 const DEFAULT_SAMPLE_RATE_OUT = 24000;
 
@@ -35,67 +42,64 @@ const createRequest = (params) => {
   if (params === undefined) params = {};
 
   // build out the request config
-  const assistConfig = new embeddedAssistant.AssistConfig();
+  const assistConfig = {};
 
   // create the defaults if nothing was passed in
   const encodingOut = params.audio ? params.audio.encodingOut : undefined;
   const sampleRateOut = params.audio ? params.audio.sampleRateOut : DEFAULT_SAMPLE_RATE_OUT;
-  const audioOut = new embeddedAssistant.AudioOutConfig();
-  audioOut.setEncoding(getEncoding(embeddedAssistant.AudioOutConfig, encodingOut));
-  audioOut.setSampleRateHertz(sampleRateOut || DEFAULT_SAMPLE_RATE_OUT);
-  audioOut.setVolumePercentage(volumePercent);
-
-  assistConfig.setAudioOutConfig(audioOut);
+  const audioOutConfig = AudioOutConfig.create({
+    encoding: getEncoding(AudioOutConfig, encodingOut),
+    sampleRateHertz: sampleRateOut || DEFAULT_SAMPLE_RATE_OUT,
+    volumePercentage: volumePercent,
+  });
+  assistConfig.audioOutConfig = audioOutConfig;
 
   // we want to send text to the assistant instead of audio
   if (params.textQuery) {
-    assistConfig.setTextQuery(params.textQuery);
+    assistConfig.textQuery = params.textQuery;
   } else {
     const encodingIn = params.audio ? params.audio.encodingIn : undefined;
     const sampleRateIn = params.audio ? params.audio.sampleRateIn : DEFAULT_SAMPLE_RATE_IN;
-    const audioIn = new embeddedAssistant.AudioInConfig();
-    audioIn.setEncoding(getEncoding(embeddedAssistant.AudioInConfig, encodingIn));
-    audioIn.setSampleRateHertz(sampleRateIn || DEFAULT_SAMPLE_RATE_IN);
-
-    assistConfig.setAudioInConfig(audioIn);
+    const audioInConfig = AudioInConfig.create({
+      encoding: getEncoding(AudioInConfig, encodingIn),
+      sampleRateHertz: sampleRateIn || DEFAULT_SAMPLE_RATE_IN,
+    });
+    assistConfig.audioInConfig = audioInConfig;
   }
 
   // set device information (or use dummy placeholders so the request works)
-  const deviceConfig = new embeddedAssistant.DeviceConfig();
-  deviceConfig.setDeviceId(params.deviceId || 'sample_device_id');
-  deviceConfig.setDeviceModelId(params.deviceModelId || 'sample_model_id');
-  assistConfig.setDeviceConfig(deviceConfig);
+  const deviceConfig = DeviceConfig.create({
+    deviceId: params.deviceId || 'sample_device_id',
+    deviceModelId: params.deviceModelId || 'sample_model_id',
+  });
+  assistConfig.deviceConfig = deviceConfig;
 
   // setup the dialog state
-  const dialogStateIn = new embeddedAssistant.DialogStateIn();
-  dialogStateIn.setLanguageCode(params.lang || 'en-US');
+  assistConfig.dialogStateIn = {
+    languageCode: params.lang || 'en-US',
+    isNewConversation: params.isNew === true,
+  };
 
   // set device location if set
   if (params.deviceLocation) {
-    const deviceLocation = new embeddedAssistant.DeviceLocation();
+    const deviceLocation = {};
     const coordinates = params.deviceLocation.coordinates;
     if (coordinates) {
-      const latLng = new LatLng();
-      latLng.setLatitude(coordinates.latitude);
-      latLng.setLongitude(coordinates.longitude);
-      deviceLocation.setCoordinates(latLng);
+      const latLng = LatLng.create(coordinates);
+      deviceLocation.coordinates = latLng;
     }
-    dialogStateIn.setDeviceLocation(deviceLocation);
+    assistConfig.dialogStateIn.deviceLocation = DeviceLocation.create(deviceLocation);
   }
 
-  // if there is a current conversation state, we need to make sure the config knows about it
+  // // if there is a current conversation state, we need to make sure the config knows about it
   if (conversationState) {
-    dialogStateIn.setConversationState(conversationState);
+    assistConfig.dialogStateIn.conversationState = conversationState;
   }
-
-  // make sure if this is a new conversation, we set the flag
-  dialogStateIn.setIsNewConversation(params.isNew === true);
-
-  assistConfig.setDialogStateIn(dialogStateIn);
 
   // go ahead and create the request to return
-  const assistRequest = new embeddedAssistant.AssistRequest();
-  assistRequest.setConfig(assistConfig);
+  const assistRequest = AssistRequest.create({
+    config: AssistConfig.create(assistConfig),
+  });
 
   // make sure we set our flag if we are doing a text query
   sendingText = params.textQuery !== undefined;
@@ -112,44 +116,42 @@ function Conversation(assistant, config) {
   let continueConversation = false;
 
   conversation.on('data', (data) => {
-    if (data.getEventType() === END_OF_UTTERANCE) {
-      this.emit('end-of-utterance');
-    }
-
     // speech to text results
-    const speechResultsList = data.getSpeechResultsList();
+    const speechResultsList = data.speechResults;
     if (speechResultsList && speechResultsList.length) {
       let transcription = '';
       let done = false;
-      speechResultsList.forEach((result, index) => {
-        transcription += result.getTranscript();
-        if (result.getStability() === 1) done = true;
+      speechResultsList.forEach((result) => {
+        transcription += result.transcript;
+        if (result.stability === 1) done = true;
       });
+
+      if (done) this.emit('end-of-utterance');
       this.emit('transcription', { transcription, done });
     }
 
     // send along the audio buffer
-    const audioOut = data.getAudioOut();
+    const audioOut = data.audioOut;
     if (audioOut) {
-      this.emit('audio-data', new Buffer(audioOut.getAudioData()));
+      this.emit('audio-data', audioOut.audioData);
     }
 
     // action that needs to be handled
-    const deviceAction = data.getDeviceAction();
+    const deviceAction = data.deviceAction;
     if (deviceAction) {
-      this.emit('device-action', JSON.parse(deviceAction.getDeviceRequestJson()));
+      this.emit('device-action', JSON.parse(deviceAction.deviceRequestJson));
     }
 
-    const dialogStateOut = data.getDialogStateOut();
+    const dialogStateOut = data.dialogStateOut;
     if (dialogStateOut) {
       // if we need to continue the conversation, let's do that
-      const micMode = dialogStateOut.getMicrophoneMode();
+      const micMode = dialogStateOut.microphoneMode;
       if (micMode === DIALOG_FOLLOW_ON) continueConversation = true;
 
-      this.emit('response', dialogStateOut.getSupplementalDisplayText());
-      setConversationState(dialogStateOut.getConversationState());
+      this.emit('response', dialogStateOut.supplementalDisplayText);
+      setConversationState(dialogStateOut.conversationState);
       
-      const volumePercent = dialogStateOut.getVolumePercentage();
+      const volumePercent = dialogStateOut.volumePercentage;
       if (volumePercent !== 0) {
         // set our local version so our assistant speaks this loud
         setVolumePercent(volumePercent);
@@ -174,8 +176,7 @@ function Conversation(assistant, config) {
     // if audio tries to come in when we are sending text, bail out
     if (sendingText) return;
 
-    const request = new embeddedAssistant.AssistRequest();
-    request.setAudioIn(data);
+    const request = AssistRequest.create({ audioIn: data });
     conversation.write(request);
   };
 
