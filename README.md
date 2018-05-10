@@ -40,6 +40,9 @@ const config = {
     },
     textQuery: 'What time is it?', // if this is set, audio input is ignored
     isNew: true, // set this to true if you want to force a new conversation and ignore the old state
+    screen: {
+      isOn: true, // set this to true if you want to output results to a screen
+    },
   },
 };
 
@@ -70,6 +73,9 @@ const startConversation = (conversation) => {
     })
     .on('device-action', (action) => {
       // if you've set this device up to handle actions, you'll get that here
+    })
+    .on('screen-data', (screen) => {
+      // if the screen.isOn flag was set to true, you'll get the format and data of the output
     })
     .on('ended', (error, continueConversation) => {
       // once the conversation is ended, see if we need to follow up
@@ -146,6 +152,8 @@ After you call `start` on your Assistant instance, you will get this back. It ta
     * longitude _{Number}_: The longitude in degrees. It must be in the range [-180.0, +180.0].
 * textQuery _{String}_: Text that will be passed to the assistant. **Audio input is disabled if this is set!**
 * isNew _{Boolean}_: Set this to true if you want to force a new conversation and ignore the old state.
+* screen _{Object}_: Configures output to return visual results.
+  * isOn _{Boolean}_: Set this to true to be able to trigger the `screen-data` event.
 
 
 ### Events
@@ -175,6 +183,11 @@ There was a request to complete an action. Check out the [Device Registration][d
 
 #### ended _{Error, Boolean}_
 After a call to `end()` this will be emitted with an error and a boolean that will be `true` if you need to continue the conversation. This is basically your cue to call `start()` again.
+
+#### screen-data _{Object}_
+Contains information to render a visual version of the assistant's response.
+* format _{String}_: What format the data is in (eg. `HTML`).
+* data _{Buffer}_: Raw data to be used to display the formatted result.
 
 ### Methods
 

@@ -15,10 +15,14 @@ const DeviceLocation = embeddedAssistant.lookupType('google.assistant.embedded.v
 const DialogStateIn = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.DialogStateIn');
 const DialogStateOut = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.DialogStateOut');
 const LatLng = embeddedAssistant.lookupType('google.type.LatLng');
+const ScreenOut = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.ScreenOut');
+const ScreenOutConfig = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.ScreenOutConfig');
 
 const END_OF_UTTERANCE = AssistResponse.EventType.END_OF_UTTERANCE;
 const DIALOG_FOLLOW_ON = DialogStateOut.MicrophoneMode.DIALOG_FOLLOW_ON;
 const CLOSE_MICROPHONE = DialogStateOut.MicrophoneMode.CLOSE_MICROPHONE;
+const SCREEN_PLAYING = ScreenOutConfig.ScreenMode.PLAYING;
+const SCREEN_OFF = ScreenOutConfig.ScreenMode.OFF;
 const DEFAULT_SAMPLE_RATE_IN = 16000;
 const DEFAULT_SAMPLE_RATE_OUT = 24000;
 
@@ -71,8 +75,8 @@ const createRequest = (params) => {
 
   // set device information (or use dummy placeholders so the request works)
   const deviceConfig = DeviceConfig.create({
-    deviceId: params.deviceId || 'sample_device_id',
-    deviceModelId: params.deviceModelId || 'sample_model_id',
+    deviceId: params.deviceId || 'example',
+    deviceModelId: params.deviceModelId || 'example',
   });
   assistConfig.deviceConfig = deviceConfig;
 
@@ -96,6 +100,14 @@ const createRequest = (params) => {
   // // if there is a current conversation state, we need to make sure the config knows about it
   if (conversationState) {
     assistConfig.dialogStateIn.conversationState = conversationState;
+  }
+
+  // if we want to support a screen
+  if (params.screen) {
+    const screenOutConfig = ScreenOutConfig.create({
+      screenMode: (params.screen.isOn ? SCREEN_PLAYING : SCREEN_OFF),
+    });
+    assistConfig.screenOutConfig = screenOutConfig;
   }
 
   // go ahead and create the request to return
@@ -163,6 +175,15 @@ function Conversation(assistant, config) {
         setVolumePercent(volumePercent);
         this.emit('volume-percent', volumePercent);
       }
+    }
+
+    // see if we have any screen output
+    const screenOut = data.screenOut;
+    if (screenOut) {
+      this.emit('screen-data', {
+        format: ScreenOut.Format[screenOut.format],
+        data: screenOut.data,
+      });
     }
   });
 
