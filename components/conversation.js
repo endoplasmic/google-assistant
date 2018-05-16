@@ -25,6 +25,10 @@ const SCREEN_PLAYING = ScreenOutConfig.ScreenMode.PLAYING;
 const SCREEN_OFF = ScreenOutConfig.ScreenMode.OFF;
 const DEFAULT_SAMPLE_RATE_IN = 16000;
 const DEFAULT_SAMPLE_RATE_OUT = 24000;
+// The max number of bytes of audio that can be sent in a single chunk.
+// Not documented anywhere by google, but sending more than this amount
+// throws an INVALID_REQUEST error stating that audio_in is too long.
+const MAX_FRAME_LENGTH = 31 * 1024; 
 
 let conversationState;
 let volumePercent = 100;
@@ -203,8 +207,16 @@ function Conversation(assistant, config) {
     // if audio tries to come in when we are sending text, bail out
     if (sendingText) return;
 
-    const request = AssistRequest.create({ audioIn: data });
-    conversation.write(request);
+    // Take the audio data and split it up into bite-sized chunks that google can digest
+    // and then send it along. Under ordinary circumstances, we should be capturing 
+    // audio data fast enough to send in a single request so that the assistant can be 
+    // highly responsive. 
+    let chunks = [];
+    while(chunks.length < data.length / MAX_FRAME_LENGTH) {
+      chunks.push(data.slice(chunks.length * MAX_FRAME_LENGTH, Math.min(data.length, (chunks.length + 1) * MAX_FRAME_LENGTH)));
+    }
+    chunks.forEach((chunk) => 
+      conversation.write(AssistRequest.create({ audioIn: chunk }))); 
   };
 
   // end the conversation
