@@ -191,6 +191,9 @@ Contains information to render a visual version of the assistant's response.
 
 ### Methods
 
+#### write(_UInt8Array_)
+When using audio input, this is what you use to send your audio chunks to the assistant. _(see the [mic-speaker](examples/mic-speaker.js) example)_
+
 #### end()
 Send this when you are finsished playing back the assistant's response.
 
