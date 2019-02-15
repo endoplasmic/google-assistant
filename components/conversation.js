@@ -131,7 +131,7 @@ function Conversation(assistant, config) {
     // send along the audio buffer
     const audioOut = data.getAudioOut();
     if (audioOut) {
-      this.emit('audio-data', new Buffer(audioOut.getAudioData()));
+      this.emit('audio-data', Buffer.from(audioOut.getAudioData()));
     }
 
     // action that needs to be handled

@@ -7,7 +7,7 @@ const requestSerialize = (value) => {
   if (!(value instanceof embeddedAssistant.AssistRequest)) {
     throw new Error('Expected argument of type google.assistant.embedded.v1alpha2.AssistRequest');
   }
-  return new Buffer(value.serializeBinary());
+  return Buffer.from(value.serializeBinary());
 }
 
 const requestDeserialize = (buffer) => {
@@ -18,7 +18,7 @@ const responseSerialize = (value) => {
   if (!(value instanceof embeddedAssistant.AssistResponse)) {
     throw new Error('Expected argument of type google.assistant.embedded.v1alpha2.AssistResponse');
   }
-  return new Buffer(value.serializeBinary());
+  return Buffer.from(value.serializeBinary());
 }
 
 const responseDeserialize = (buffer) => {
