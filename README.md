@@ -93,6 +93,14 @@ assistant
   .on('started', startConversation);
 ```
 
+### TypeScript
+
+```ts
+import GoogleAssistant = require("google-assistant");
+
+const googleAssistant: GoogleAssistant = new GoogleAssistant();
+```
+
 ## Examples
 * [mic-speaker](examples/mic-speaker.js) - If you want to test input and output using your machine’s built-in hardware.
 * [console-input](examples/console-input.js) - Use the console to have a text-based conversation with the assistant.
