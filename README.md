@@ -96,9 +96,45 @@ assistant
 ### TypeScript
 
 ```ts
-import GoogleAssistant = require("google-assistant");
+import { Config, Conversation, GoogleAssistant } from "google-assistant";
 
-const googleAssistant: GoogleAssistant = new GoogleAssistant();
+import path from "path";
+
+const authConfig: Config.AuthConfig = {
+  keyFilePath: path.join(__dirname, "config", "key.json"),
+  savedTokensPath: path.join(__dirname, ".tmp", "tokens.json")
+};
+
+const conversationConfig: Config.ConversationConfig = {
+  audio: <Config.AudioConfig> {
+    sampleRateIn: 16000,
+    encodingIn: "FLAC"
+  },
+  deviceLocation: <Config.DeviceLocationConfig> {
+    coordinates: {
+      longitude: 0
+    }
+  },
+  screen: <Config.ScreenConfig> {
+    isOn: false
+  },
+  lang: "en-GB"
+};
+
+new GoogleAssistant(authConfig)
+  .on("ready", (assistant: GoogleAssistant) => assistant.start(conversationConfig))
+  .on("started", startConversation);
+
+function startConversation(conversation: Conversation, assistant: GoogleAssistant) {
+  conversation
+    .on("error", (error: Error) => console.error(error))
+    .on("transcription", (data: { transcription: string; done: boolean }) => console.log(data.transcription, data.done))
+    .on("ended", (error: Error, continueConversation: boolean) => {
+      if (error) console.log("Conversation Ended Error:", error);
+      else if (continueConversation) assistant.start({});
+      else console.log("Conversation Complete");
+    });
+}
 ```
 
 ## Examples
