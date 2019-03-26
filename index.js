@@ -35,7 +35,7 @@ function GoogleAssistant(authConfig, callback) {
     }
 
     const conversation = new Conversation(assistant, conversationConfig);
-    this.emit('started', conversation);
+    this.emit('started', conversation, assistant);
     if (callback) callback(conversation);
   };
 
