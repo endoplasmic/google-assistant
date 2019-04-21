@@ -3,7 +3,7 @@
 const EventEmitter = require('events');
 const util = require('util');
 const grpc = require('grpc');
-const opn = require('opn');
+const open = require('open');
 const readline = require('readline');
 const fs = require('fs');
 const path = require('path');
@@ -45,7 +45,7 @@ function Auth(config) {
 
     // open the URL
     console.log('Opening OAuth URL. Return here with your code.');
-    opn(url).catch(() => {
+    open(url).catch(() => {
       console.log('Failed to automatically open the URL. Copy/paste this in your browser:\n', url);
     });
 
