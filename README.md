@@ -89,8 +89,16 @@ const startConversation = (conversation) => {
 // will start a conversation and wait for audio data
 // as soon as it's ready
 assistant
-  .on('ready', () => assistant.start())
+  .on('ready', () => assistant.start(config.conversation))
   .on('started', startConversation);
+```
+
+### TypeScript
+
+```ts
+import GoogleAssistant = require("google-assistant");
+
+const googleAssistant: GoogleAssistant = new GoogleAssistant();
 ```
 
 ## Examples
