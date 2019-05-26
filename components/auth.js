@@ -23,7 +23,8 @@ function Auth(config) {
     return;
   }
 
-  const key = require(config.keyFilePath).installed;
+  const keyData = require(config.keyFilePath);
+  const key = keyData.installed || keyData.web;
   const oauthClient = new OAuth2(key.client_id, key.client_secret, key.redirect_uris[0]);
   let tokens;
 
