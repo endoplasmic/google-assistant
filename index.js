@@ -17,14 +17,26 @@ function GoogleAssistant(authConfig, callback) {
 
   let assistant;
 
-  // we need to auth with Google right out of the gate
-  const auth = new Auth(authConfig);
+  const assistantReady = () => {
+    if (assistant) {
+      this.emit('ready', assistant);
+      if (callback) callback(assistant);
+    }
+  };
 
-  auth.on('ready', (client) => {
-    assistant = new Assistant(client);
-    this.emit('ready', assistant);
-    if (callback) callback(assistant);
-  });
+  if (authConfig.oauth2Client) {
+    // we are passing in a client that is already authed with Google
+    assistant = new Assistant(authConfig.oauth2Client);
+    assistantReady();
+  } else {
+    // we need to auth with Google right out of the gate
+    const auth = new Auth(authConfig);
+
+    auth.on('ready', (client) => {
+      assistant = new Assistant(client);
+      assistantReady();
+    });
+  }
 
   this.start = (conversationConfig, callback) => {
     if (assistant === undefined) {
