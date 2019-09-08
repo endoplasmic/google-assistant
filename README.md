@@ -8,7 +8,9 @@ A version in node to play around with! I've abstracted it from needing to use th
 $ npm install google-assistant
 ```
 
-If you want the device that you are running this code on to respond to commands (eg. "Turn off"), you'll need to go through the [Device Registration][device-registration] instructions.
+> You may also pass in your own OAuth2 client via the `oauth2Client` param _(This will be used instead of `keyFilePath` and `savedTokensPath`)_. See the usage below for an example.
+
+> If you want the device that you are running this code on to respond to commands _(eg. "Turn off")_, you'll need to go through the [Device Registration][device-registration] instructions.
 
 ## Usage
 ```js
@@ -20,6 +22,9 @@ const config = {
     // where you want the tokens to be saved
     // will create the directory if not already there
     savedTokensPath: path.resolve(__dirname, 'tokens.json'),
+    // you can also pass an oauth2 client instead if you've handled
+    // auth in a different workflow. This trumps the other params.
+    oauth2Client: YOUR_CLIENT,
   },
   // this param is optional, but all options will be shown
   conversation: {
