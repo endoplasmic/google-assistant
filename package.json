@@ -21,14 +21,14 @@
   "homepage": "https://github.com/endoplasmic/google-assistant#readme",
   "dependencies": {
     "google-auth-library": "0.10.0",
-    "grpc": "^1.12.1",
+    "grpc": "^1.24.2",
     "mkdirp": "^0.5.1",
-    "open": "^6.1.0",
-    "protobufjs": "^6.8.6",
+    "open": "^6.4.0",
+    "protobufjs": "^6.8.8",
     "readline": "^1.3.0"
   },
   "devDependencies": {
     "node-record-lpcm16": "git+https://github.com/endoplasmic/node-record-lpcm16.git",
-    "speaker": "^0.4.0"
+    "speaker": "^0.4.2"
   }
 }
