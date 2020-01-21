@@ -10,6 +10,7 @@ const AssistRequest = embeddedAssistant.lookupType('google.assistant.embedded.v1
 const AssistResponse = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.AssistResponse');
 const AudioInConfig = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.AudioInConfig');
 const AudioOutConfig = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.AudioOutConfig');
+const DebugConfig = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.DebugConfig');
 const DeviceConfig = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.DeviceConfig');
 const DeviceLocation = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.DeviceLocation');
 const DialogStateIn = embeddedAssistant.lookupType('google.assistant.embedded.v1alpha2.DialogStateIn');
@@ -110,6 +111,12 @@ const createRequest = (params) => {
     assistConfig.screenOutConfig = screenOutConfig;
   }
 
+  // if we want to show debug info
+  const debugConfig = DebugConfig.create({
+    returnDebugInfo: params.showDebugInfo === true,
+  });
+  assistConfig.debugConfig = debugConfig;
+
   // go ahead and create the request to return
   const assistRequest = AssistRequest.create({
     config: AssistConfig.create(assistConfig),
@@ -152,6 +159,12 @@ function Conversation(assistant, config) {
     const audioOut = data.audioOut;
     if (audioOut) {
       this.emit('audio-data', audioOut.audioData);
+    }
+
+    // see if there is any debug info
+    const debugInfo = data.debugInfo;
+    if (debugInfo) {
+      this.emit('debug-info', JSON.parse(debugInfo.aogAgentToAssistantJson));
     }
 
     // action that needs to be handled
