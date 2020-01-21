@@ -11,6 +11,7 @@ const config = {
   },
   conversation: {
     lang: 'en-US', // defaults to en-US, but try other ones, it's fun!
+    showDebugInfo: false, // default is false, bug good for testing AoG things
   },
 };
 
@@ -18,6 +19,7 @@ const startConversation = (conversation) => {
   // setup the conversation
   conversation
     .on('response', text => console.log('Assistant Response:', text))
+    .on('debug-info', info => console.log('Debug Info:', info))
     // if we've requested a volume level change, get the percentage of the new level
     .on('volume-percent', percent => console.log('New Volume Percent:', percent))
     // the device needs to complete an action
