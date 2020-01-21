@@ -25,7 +25,6 @@ option java_outer_classname = "AssistantProto";
 option java_package = "com.google.assistant.embedded.v1alpha2";
 option objc_class_prefix = "ASTSDK";
 
-
 // Service that implements the Google Assistant API.
 service EmbeddedAssistant {
   // Initiates or continues a conversation with the embedded Assistant Service.
@@ -140,13 +139,29 @@ message AssistResponse {
 
   // *Output-only* Contains output related to the user's query.
   DialogStateOut dialog_state_out = 5;
+
+  // *Output-only* Debugging info for developer. Only returned if request set
+  // `return_debug_info` to true.
+  DebugInfo debug_info = 8;
+}
+
+// Debug info for developer. Only returned if request set `return_debug_info`
+// to true.
+message DebugInfo {
+  // The original JSON response from an Action-on-Google agent to Google server.
+  // See
+  // https://developers.google.com/actions/reference/rest/Shared.Types/AppResponse.
+  // It will only be populated if the request maker owns the AoG project and the
+  // AoG project is in preview mode.
+  string aog_agent_to_assistant_json = 1;
 }
 
 // Specifies how to process the `AssistRequest` messages.
 message AssistConfig {
   oneof type {
     // Specifies how to process the subsequent incoming audio. Required if
-    // [AssistRequest.audio_in][google.assistant.embedded.v1alpha2.AssistRequest.audio_in] bytes will be provided in subsequent requests.
+    // [AssistRequest.audio_in][google.assistant.embedded.v1alpha2.AssistRequest.audio_in]
+    // bytes will be provided in subsequent requests.
     AudioInConfig audio_in_config = 1;
 
     // The text input to be sent to the Assistant. This can be populated from a
@@ -166,11 +181,15 @@ message AssistConfig {
 
   // Device configuration that uniquely identifies a specific device.
   DeviceConfig device_config = 4;
+
+  // *Optional* Debugging parameters for the whole `Assist` RPC.
+  DebugConfig debug_config = 5;
 }
 
 // Specifies how to process the `audio_in` data that will be provided in
 // subsequent requests. For recommended settings, see the Google Assistant SDK
-// [best practices](https://developers.google.com/assistant/sdk/guides/service/python/best-practices/audio).
+// [best
+// practices](https://developers.google.com/assistant/sdk/guides/service/python/best-practices/audio).
 message AudioInConfig {
   // Audio encoding of the data sent in the audio message.
   // Audio must be one-channel (mono).
@@ -264,16 +283,20 @@ message ScreenOutConfig {
 // Provides information about the current dialog state.
 message DialogStateIn {
   // *Required* This field must always be set to the
-  // [DialogStateOut.conversation_state][google.assistant.embedded.v1alpha2.DialogStateOut.conversation_state] value that was returned in the prior
-  // `Assist` RPC. It should only be omitted (field not set) if there was no
-  // prior `Assist` RPC because this is the first `Assist` RPC made by this
-  // device after it was first setup and/or a factory-default reset.
+  // [DialogStateOut.conversation_state][google.assistant.embedded.v1alpha2.DialogStateOut.conversation_state]
+  // value that was returned in the prior `Assist` RPC. It should only be
+  // omitted (field not set) if there was no prior `Assist` RPC because this is
+  // the first `Assist` RPC made by this device after it was first setup and/or
+  // a factory-default reset.
   bytes conversation_state = 1;
 
   // *Required* Language of the request in
-  // [IETF BCP 47 syntax](https://tools.ietf.org/html/bcp47). For example:
-  // "en-US". If you have selected a language for this `device_id` using the
-  // [Settings](https://developers.google.com/assistant/sdk/guides/assistant-settings)
+  // [IETF BCP 47 syntax](https://tools.ietf.org/html/bcp47) (for example,
+  // "en-US"). See [Language
+  // Support](https://developers.google.com/assistant/sdk/reference/rpc/languages)
+  // for more information. If you have selected a language for this `device_id`
+  // using the
+  // [Settings](https://developers.google.com/assistant/sdk/reference/assistant-app/assistant-settings)
   // menu in your phone's Google Assistant app, that selection will override
   // this value.
   string language_code = 2;
@@ -323,7 +346,8 @@ message AudioOut {
   bytes audio_data = 1;
 }
 
-// The Assistant's visual response to query. Contains the entire visual output.
+// The Assistant's visual output response to query. Enabled by
+// `screen_out_config`.
 message ScreenOut {
   // Possible formats of the screen data.
   enum Format {
@@ -331,7 +355,7 @@ message ScreenOut {
     FORMAT_UNSPECIFIED = 0;
 
     // Data will contain a fully-formed HTML5 layout encoded in UTF-8, e.g.
-    // "<html><body><div>...</div></body></html>". It is intended to be rendered
+    // `<html><body><div>...</div></body></html>`. It is intended to be rendered
     // along with the audio response. Note that HTML5 doctype should be included
     // in the actual HTML data.
     HTML = 1;
@@ -416,6 +440,14 @@ message DialogStateOut {
   // clients may also implement other ways to allow the current volume level to
   // be changed, for example, by providing a knob that the user can turn.)
   int32 volume_percentage = 4;
+}
+
+// Debugging parameters for the current request.
+message DebugConfig {
+  // When this field is set to true, the `debug_info` field in `AssistResponse`
+  // may be populated. However it will significantly increase latency of
+  // responses. Do not set this field true in production code.
+  bool return_debug_info = 6;
 }
 
 // There are three sources of locations. They are used with this precedence:
