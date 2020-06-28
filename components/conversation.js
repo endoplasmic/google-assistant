@@ -198,6 +198,8 @@ function Conversation(assistant, config) {
         data: screenOut.data,
       });
     }
+
+    this.emit('data', data);
   });
 
   conversation.on('end', (error) => {
