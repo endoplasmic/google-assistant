@@ -14,6 +14,9 @@
     "google assistant"
   ],
   "author": "Scott Ysebert <endoplasmic@gmail.com>",
+  "contributors": [
+    { "name": "Carlos Knoke Flores", "email": "carlos@knoke.net" }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/endoplasmic/google-assistant/issues"
