@@ -88,7 +88,9 @@ const startConversation = (conversation) => {
       else if (continueConversation) assistant.start();
       else console.log('Conversation Complete');
     })
-    .on('error', error => console.error(error));
+    .on('error', error => console.error(error))
+    // raw data from the google assistant conversation, useful for debugging or if something is no covered above
+    .on('data', data => console.log(data));
 };
 
 // will start a conversation and wait for audio data
