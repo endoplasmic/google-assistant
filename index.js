@@ -27,7 +27,7 @@ function GoogleAssistant(authConfig, callback) {
   if (authConfig.oauth2Client) {
     // we are passing in a client that is already authed with Google
     assistant = new Assistant(authConfig.oauth2Client);
-    process.nextTick(assistantReady());
+    process.nextTick(assistantReady);
   } else {
     // we need to auth with Google right out of the gate
     const auth = new Auth(authConfig);
