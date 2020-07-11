@@ -1,6 +1,6 @@
 {
   "name": "google-assistant",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "gRPC wrapper for the Google Assistant",
   "main": "index.js",
   "scripts": {
@@ -15,7 +15,10 @@
   ],
   "author": "Scott Ysebert <endoplasmic@gmail.com>",
   "contributors": [
-    { "name": "Carlos Knoke Flores", "email": "carlos@knoke.net" }
+    {
+      "name": "Carlos Knoke Flores",
+      "email": "carlos@knoke.net"
+    }
   ],
   "license": "MIT",
   "bugs": {
