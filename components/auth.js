@@ -33,7 +33,7 @@ function Auth(config) {
     this.emit('ready', oauthClient);
 
     // save them for later
-    mkdirp(path.dirname(config.savedTokensPath), () => {
+    mkdirp(path.dirname(config.savedTokensPath)).then(() => {
       fs.writeFile(config.savedTokensPath, JSON.stringify(tokens), () => {});
     });
   };
