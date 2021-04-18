@@ -53,7 +53,7 @@ function Auth(config) {
     // if tokenInput is configured
     // run the tokenInput function to accept the token code
     if (typeof config.tokenInput === 'function') {
-      config.tokenInput(processTokens);
+      config.tokenInput(processTokens, url);
       return;
     }
 
