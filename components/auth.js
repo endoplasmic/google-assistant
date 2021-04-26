@@ -90,7 +90,16 @@ function Auth(config) {
         // we need to get the tokens
         getTokens();
       } finally {
-        if (tokens !== undefined) saveTokens();
+        if (tokens !== undefined) {
+          oauthClient.setCredentials(tokens);
+          // verify if the token is expired
+          if (tokens.expiry_date < Date.now()) {
+            // refresh the token if expired
+            let ret = await oauthClient.refreshAccessToken()
+            tokens = ret.credentials;
+          }
+          saveTokens();
+        }
       }
     }
   });
