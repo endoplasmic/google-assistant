@@ -81,7 +81,7 @@ function Auth(config) {
   };
 
   // if the tokens are already saved, we can skip having to get the code for now
-  process.nextTick(() => {
+  process.nextTick(async () => {
     if (config.savedTokensPath) {
       try {
         const tokensFile = fs.readFileSync(config.savedTokensPath);
