@@ -2,7 +2,7 @@
 
 const EventEmitter = require('events');
 const util = require('util');
-const grpc = require('grpc');
+const grpc = require('@grpc/grpc-js');
 
 const EmbeddedAssistantClient = require('./embedded-assistant').EmbeddedAssistantClient;
 

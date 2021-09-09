@@ -74,9 +74,13 @@ function Auth(config) {
 
     // get our tokens to save
     oauthClient.getToken(oauthCode, (error, tkns) => {
-      // if we didn't have an error, save the tokens
-      if (error) throw new Error('Error getting tokens:', error);
+      // if we have an error, print it and kill the process
+      if (error) {
+        console.error('Error getting tokens:', error.response.data);
+        process.exit(-1);
+      }
 
+      // if we didn't have an error, save the tokens
       tokens = tkns;
       saveTokens();
     });
@@ -88,7 +92,7 @@ function Auth(config) {
       try {
         const tokensFile = fs.readFileSync(config.savedTokensPath);
         tokens = JSON.parse(tokensFile);
-      } catch(error) {
+      } catch (error) {
         // we need to get the tokens
         getTokens();
       } finally {
